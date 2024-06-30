@@ -5,7 +5,7 @@ export interface Event {
 
 export enum Subjects {
     TICKETCREATED="ticket:created",
-    ORDERCREATED="order:created"
+    TICKETUPDATED="ticket:updated"
 }
 
 export interface TicketCreatedEvent {

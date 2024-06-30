@@ -3,20 +3,17 @@ import { TicketCreatedPublisher } from "./events/ticket-created-publisher";
 
 const stan = nats.connect("ticketing", "abc", { url: "http://localhost:4222" });
 
-stan.on("connect", () => {
+stan.on("connect", async () => {
   console.log("Publisher connected to NATS");
 
   const publisher = new TicketCreatedPublisher(stan);
-  publisher.publish({
-    id: "123",
-    title: "concert",
-    price: 20,
-  });
-
-  // stan.publish("ticket:created",data,(err, guid)=>{
-  //     if(err){
-  //         console.log(err);
-  //     }
-  //     console.log("Event published with guid:",guid);
-  // })
+  try {
+    await publisher.publish({
+        id: "123",
+        title: "concert",
+        price: 20,
+      });
+  } catch (error) {
+    console.error(error);
+  }
 });
