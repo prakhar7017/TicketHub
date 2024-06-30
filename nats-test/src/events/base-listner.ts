@@ -1,9 +1,11 @@
 import { Message, Stan } from "node-nats-streaming";
+import { Event } from "./events.types";
 
-export abstract class Listner {
-    abstract subject:string; // name if the channel
+
+export abstract class Listner<T extends Event> {
+    abstract subject:T['subject']; // name if the channel
     abstract queueGroupName:string; // name of the queue grp this listner will join
-    abstract onMessage(data:any,msg:Message):void ;
+    abstract onMessage(data:T['data'],msg:Message):void ;
     private client:Stan;
     protected ackWait=5*1000; // 5 sec no of sec this listern has wait for ack a message
 
