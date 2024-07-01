@@ -1,7 +1,8 @@
 import mongoose from "mongoose";
 import { app } from "./app";
 const PORT=process.env.PORT || 3000;
-import { ServerError } from "@prakhartickets/common"
+import { ServerError } from "@prakhartickets/common";
+import { natsWrapper } from "./nats-wrapper";
 
 const start=async ()=>{
     if(!process.env.JWT_KEY){
@@ -11,6 +12,13 @@ const start=async ()=>{
         throw new ServerError("MONGO URI not found")
     }
     try {
+        await natsWrapper.connect("ticketing","random", "http://nats-srv:4222");
+        natsWrapper.Client.on("close",()=>{
+            console.log("NATS connection closed");
+            process.exit();
+        })
+        process.on("SIGINT",()=>natsWrapper.Client.close());
+        process.on("SIGTERM",()=>natsWrapper.Client.close());
         await mongoose.connect(process.env.MONGO_URI);
     } catch (error) {
         console.log(error);

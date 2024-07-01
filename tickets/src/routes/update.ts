@@ -2,6 +2,8 @@ import express,{ Request, Response } from "express";
 import { body } from "express-validator";
 import { BadRequestError, ServerError, NotFoundError, Forbidden, requireAuth, ValidateRequest} from "@prakhartickets/common";
 import { Ticket } from "../models/ticket";
+import { TicketUpdatePublisher } from "../events/ticket-update-publisher";
+import { natsWrapper } from "../nats-wrapper";
 
 const validation=[
     body("title").not().isEmpty().withMessage("Title is required"),
@@ -28,6 +30,12 @@ router.put("/api/tickets/:id",requireAuth,validation,ValidateRequest, async (req
             price
         });
         await ticket.save();
+        await new TicketUpdatePublisher(natsWrapper.Client).publish({
+            id:ticket.id,
+            title:ticket.title,
+            price:ticket.price,
+            userId:ticket.userId,
+        })
         return res.status(200).json({
             success:true,
             message:"Ticket updated successfully",

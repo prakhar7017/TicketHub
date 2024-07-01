@@ -2,6 +2,8 @@ import express ,{ Request, Response } from "express";
 import  { body } from "express-validator";
 import { BadRequestError, requireAuth,ServerError,ValidateRequest } from "@prakhartickets/common"; 
 import { Ticket } from "../models/ticket";
+import { TicketCreatedPublisher } from "@prakhartickets/common";
+import { natsWrapper } from "../nats-wrapper";
 
 const router=express.Router();
 
@@ -26,6 +28,13 @@ router.post("/api/tickets",requireAuth,validation,ValidateRequest, async (req:Re
         })
 
         await newTicket.save();
+
+        new TicketCreatedPublisher(natsWrapper.Client).publish({
+            id:newTicket.id,
+            title:newTicket.title,
+            price:newTicket.price,
+            userId:newTicket.userId
+        })
 
         return res.status(201).json({
             success:true,
