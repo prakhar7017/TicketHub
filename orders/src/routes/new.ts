@@ -7,6 +7,8 @@ import { Ticket } from "../models/ticket";
 
 const router=express.Router();
 
+const EXPIRATION_WINDOW_IN_SECONDS=10*60;
+
 const validation=[
     body("ticketId").not().isEmpty().custom((input:string)=> mongoose.Types.ObjectId.isValid(input)).withMessage("ticketId is required"),
 ];
@@ -16,21 +18,37 @@ const validation=[
 router.post("/api/orders",requireAuth,validation,ValidateRequest, async (req:Request,res:Response)=>{
     const { ticketId }= req.body;
 
-    // find the ticket in db
-    const ticket=await Ticket.findById(ticketId);
-    if(!ticket){
-        throw new NotFoundError('Ticket not found');
-    }
-    // ticket is not already reserved
-    const order=await Order.findOne({
-        ticket:ticketId,
-        status:{
-            $in:[OrderStatus]
+    try {
+        // find the ticket in db
+        const ticket=await Ticket.findById(ticketId);
+        if(!ticket){
+            throw new NotFoundError('Ticket not found');
         }
-    })
-    // calculate the expiration date of the order
-    // build the order and save to db
-    // Publish an event saying order is created
+        // ticket is not already reserved
+        const isReserved=await ticket.isReserved();
+        if(isReserved){
+            throw new BadRequestError('Ticket is already reserved');
+        }
+        // calculate the expiration date of the order
+        const expiration=new Date();
+        expiration.setSeconds(expiration.getSeconds()+EXPIRATION_WINDOW_IN_SECONDS);
+        // build the order and save to db
+        const order=Order.build({
+            userId:req.user!.id,
+            status:OrderStatus.CREATED,
+            expiresAt:expiration,
+            ticket:ticket 
+        })
+        // Publish an event saying order is created
+        res.status(201).json({
+            success:true,
+            message:"order created successfully",
+            order:order
+        })  
+    } catch (error) {
+        console.log(error);
+        throw new ServerError('Internal Server Error')
+    }
 });
 
 export { router as newOrderRouter };

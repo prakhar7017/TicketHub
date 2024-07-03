@@ -3,7 +3,10 @@ import 'express-async-errors';
 import mongoose from "mongoose";
 import cookieSession from "cookie-session";
 import { errorHandler, NotFoundError, ServerError,currentUser } from "@prakhartickets/common"
-
+import { newOrderRouter } from "./routes/new";
+import { showOrderRouter } from "./routes/show";
+import { showsOrderRouter } from "./routes/shows";
+import { deleteOrderRouter } from "./routes/delete";
 const app=express();
 const PORT=3000;
 
@@ -16,6 +19,11 @@ app.use(cookieSession({
 }))
 
 app.use(currentUser);
+
+app.use(newOrderRouter);
+app.use(showOrderRouter);
+app.use(showsOrderRouter);
+app.use(deleteOrderRouter);
 
 app.all('*',async (req,res)=>{
     throw new NotFoundError("Some error has occured");

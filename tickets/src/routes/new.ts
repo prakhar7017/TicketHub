@@ -21,7 +21,7 @@ interface TicketI {
 router.post("/api/tickets",requireAuth,validation,ValidateRequest, async (req:Request,res:Response)=>{
     const { title, price }:TicketI=req.body;
     try {
-        const newTicket = await Ticket.build({
+        const newTicket = Ticket.build({
             title:title,
             price:price,
             userId:req.user!.id

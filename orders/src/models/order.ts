@@ -51,9 +51,11 @@ const orderSchema = new Schema(
   }
 );
 
-orderSchema.statics.build= (attrs:OrderAttr){
+orderSchema.statics.build= (attrs:OrderAttr)=>{
     return new Order(attrs);
 }
+
+
 
 const Order=model<OrderDoc,OrderModel>('Order',orderSchema);
 
