@@ -21,7 +21,13 @@ router.put("/api/tickets/:id",requireAuth,validation,ValidateRequest, async (req
         const ticket= await Ticket.findById(id);
         if(!ticket){
             throw new NotFoundError("Ticket not found");
+
         }
+
+        if(ticket.orderId){
+            throw new BadRequestError("Ticket is reserved, cannot be edited");
+        }
+
         if(ticket.userId!==req.user!.id){
             throw new Forbidden("You are not authorized to update this ticket");
         }

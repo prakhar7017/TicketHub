@@ -3,6 +3,8 @@ import { app } from "./app";
 const PORT=process.env.PORT || 3000;
 import { ServerError } from "@prakhartickets/common";
 import { natsWrapper } from "./nats-wrapper";
+import { OrderCancelledListner } from "./events/listner/order-cancelled-listner";
+import { OrderCreateListner } from "./events/listner/order-create-listner";
 
 const start=async ()=>{
     if(!process.env.JWT_KEY){
@@ -28,6 +30,9 @@ const start=async ()=>{
         })
         process.on("SIGINT",()=>natsWrapper.Client.close());
         process.on("SIGTERM",()=>natsWrapper.Client.close());
+
+        new OrderCreateListner(natsWrapper.Client).listen();
+        new OrderCancelledListner(natsWrapper.Client).listen();
         await mongoose.connect(process.env.MONGO_URI);
     } catch (error) {
         console.log(error);

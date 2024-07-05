@@ -9,10 +9,7 @@ export class TicketUpdateListner extends Listner<TicketUpdateEvent> {
     async onMessage(data:TicketUpdateEvent['data'],msg: Message): Promise<void> {
         const { id, title, price, version }= data;
         
-        const ticket=await Ticket.findOne({
-            _id:id,
-            version:version-1,
-        });
+        const ticket=await Ticket.findPreviousVersionByEvent(data);
         
         if(!ticket){
             throw new NotFoundError("Ticket not found");
