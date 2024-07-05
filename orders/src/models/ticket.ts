@@ -1,18 +1,21 @@
 import mongoose, { model, Document, Schema, Model } from "mongoose";
 import { Order } from "./order";
 import { OrderStatus } from "@prakhartickets/common";
+import { updateIfCurrentPlugin } from "mongoose-update-if-current";
 
 
 interface TicketAttr {
+    id:string;
     title:string;
     price:number;
-    // version:string 
 }
 
 export interface TicketDoc extends Document {
     title:string,
     price:number;
+    version:number;
     isReserved():Promise<boolean>;
+
 }
 
 interface TicketModel extends Model<TicketDoc>{
@@ -37,9 +40,16 @@ const ticketSchema=new Schema({
         }
     }
 })
+ticketSchema.set("versionKey","version");
+ticketSchema.plugin(updateIfCurrentPlugin);
+
 // statics is used to add a method directly to the model
 ticketSchema.statics.build=(attrs:TicketAttr)=>{
-    return new Ticket(attrs);
+    return new Ticket({
+        _id:attrs.id,
+        price:attrs.price,
+        title:attrs.title,
+    });
 }
 
 // and methods is used to add a method to the instance of the model ie. document

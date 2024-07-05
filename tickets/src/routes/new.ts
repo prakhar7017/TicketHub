@@ -29,11 +29,12 @@ router.post("/api/tickets",requireAuth,validation,ValidateRequest, async (req:Re
 
         await newTicket.save();
 
-        new TicketCreatedPublisher(natsWrapper.Client).publish({
+        await new TicketCreatedPublisher(natsWrapper.Client).publish({
             id:newTicket.id,
             title:newTicket.title,
             price:newTicket.price,
-            userId:newTicket.userId
+            userId:newTicket.userId,
+            version:newTicket.version
         })
 
         return res.status(201).json({

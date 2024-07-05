@@ -4,6 +4,8 @@ import { BadRequestError, NotFoundError, requireAuth,ServerError,ValidateRequest
 import mongoose from "mongoose";
 import { Order } from "../models/order";
 import { Ticket } from "../models/ticket";
+import { OrderCreatedPublisher } from "../events/publisher/order-created-publisher";
+import { natsWrapper } from "../nats-wrapper";
 
 const router=express.Router();
 
@@ -39,7 +41,19 @@ router.post("/api/orders",requireAuth,validation,ValidateRequest, async (req:Req
             expiresAt:expiration,
             ticket:ticket 
         })
+
+        await order.save();
         // Publish an event saying order is created
+        new OrderCreatedPublisher(natsWrapper.Client).publish({
+            id:order.id,
+            userId:order.userId,
+            status:order.status,
+            expiresAt:order.expiresAt.toISOString(),
+            ticket:{
+                id:ticket.id,
+                price:ticket.price
+            }
+        })
         res.status(201).json({
             success:true,
             message:"order created successfully",

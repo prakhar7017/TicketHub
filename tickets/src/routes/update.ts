@@ -35,6 +35,7 @@ router.put("/api/tickets/:id",requireAuth,validation,ValidateRequest, async (req
             title:ticket.title,
             price:ticket.price,
             userId:ticket.userId,
+            version:ticket.version
         })
         return res.status(200).json({
             success:true,
