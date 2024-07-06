@@ -3,10 +3,8 @@ import { app } from "./app";
 const PORT=process.env.PORT || 3000;
 import { ServerError } from "@prakhartickets/common";
 import { natsWrapper } from "./nats-wrapper";
-import { TicketCreatedListner } from "./events/listner/ticket-created-listner";
-import { TicketUpdateListner } from "./events/listner/ticket-update-listner";
-import { PaymentCreatedListner } from "./events/listner/payment-created-listner";
-import { logger } from "@prakhartickets/common";
+import { OrderCancelledListner } from "./events/listner/order-cancelled-listner";
+import { OrderCreateListner } from "./events/listner/order-created-listner";
 
 const start=async ()=>{
     if(!process.env.JWT_KEY){
@@ -33,17 +31,16 @@ const start=async ()=>{
         process.on("SIGINT",()=>natsWrapper.Client.close());
         process.on("SIGTERM",()=>natsWrapper.Client.close());
 
-        new TicketCreatedListner(natsWrapper.Client).listen();
-        new TicketUpdateListner(natsWrapper.Client).listen();
-        new PaymentCreatedListner(natsWrapper.Client).listen();
+        new OrderCreateListner(natsWrapper.Client).listen();
+        new OrderCancelledListner(natsWrapper.Client).listen();
+
         await mongoose.connect(process.env.MONGO_URI);
     } catch (error) {
         console.log(error);
     }
     console.log("mongodb is initialized")
     app.listen(PORT,()=>{
-        console.log(`orders service has started on ${PORT}`)
-        logger.logInfo("Order Service initialized")
+        console.log(`payments service has started on ${PORT}`)
     })
 };
 start();

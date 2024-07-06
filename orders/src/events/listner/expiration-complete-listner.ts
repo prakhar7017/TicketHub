@@ -1,6 +1,5 @@
 import { Message } from "node-nats-streaming";
 import { Listner, Subjects , ExpirationCompleteEvent, NotFoundError, OrderStatus } from "@prakhartickets/common";
-import { Ticket } from "../../models/ticket";
 import { QueueGroupName } from "./listner.types";
 import { Order } from "../../models/order";
 import { OrderCancelledPublisher } from "../publisher/order-cancelled-publisher";
@@ -14,6 +13,10 @@ export class TicketCreatedListner extends Listner<ExpirationCompleteEvent> {
         const order= await Order.findById(orderId).populate('ticket');
         if(!order){
             throw new NotFoundError("order not found");
+        }
+
+        if(order.status===OrderStatus.COMPLETE){
+            return msg.ack();
         }
 
         order.set({
